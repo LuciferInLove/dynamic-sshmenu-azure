@@ -254,8 +254,6 @@ func action(c *cli.Context) error {
 		connectTo = username + "@" + parsedSelectedVM["IP"]
 	}
 
-	fmt.Println(connectTo)
-
 	cmd := exec.Command(sshPath, connectTo)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
