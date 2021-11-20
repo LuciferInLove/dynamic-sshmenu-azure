@@ -15,7 +15,7 @@ Dynamically creates a menu containing a list of Microsoft Azure™ Virtual Machi
 ## Preparations for using
 
 First of all, you should setup authentication to interact with Azure™:
-* [authentication methods](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization)
+* [authentication methods](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization) **(NOTE: only file-based authentication works for now)**
 
 If you are using bastion server, you can set it as proxy in ssh config as follows:
 
