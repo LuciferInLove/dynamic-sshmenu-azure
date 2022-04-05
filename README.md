@@ -26,6 +26,11 @@ Host 172.31.*.*
 ```
 
 `172.31.*.*` - your virtual machines private addresses range, `203.0.113.25` - bastion server public ip.
+Or you can set ProxyCommand using flag -s as follows:
+
+```shell
+dynamic-sshmenu-azure -s "-o ProxyCommand=ssh -W %h:%p 203.0.113.25"
+```
 
 [Use ssh agent forwarding](https://developer.github.com/v3/guides/using-ssh-agent-forwarding/) to prevent keeping your private ssh keys on bastion servers.
 
@@ -39,6 +44,8 @@ You can see the **dynamic-sshmenu-azure** help by running it with `-h` argument.
     --resource-group value, -g value    azure resource group name. If undefined, resource groups list will be shown. Environment variables: [$AZURE_DEFAULTS_GROUP, $AZURE_BASE_GROUP_NAME]
     --location value,       -l value    azure resource groups location (region). If undefined, full resource groups list will be shown. Environment variables: [$AZURE_DEFAULTS_LOCATION]
     --public-ip,            -p          use public ip instead of private. If vm doesn't have public ip, it will be skipped from the list (default: false)
+    --ssh-username value,   -u value    ssh username. If undefined, the current user will be used
+    --ssh-options value,    -s value    ssh additional parameters. You can specify, e.g., ProxyCommand, etc. Please, don't use additional quotes here.
     --help,                 -h          show help (default: false)
     --version,              -v          print the version (default: false)
 

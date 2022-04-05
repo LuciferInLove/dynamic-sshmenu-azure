@@ -17,7 +17,7 @@ import (
 var (
 	resourceGroupToPassOn string
 	connectTo             string
-	version               string      = "v0.0.2"
+	version               string      = "v0.0.3"
 	appAuthor             *cli.Author = &cli.Author{
 		Name:  "LuciferInLove",
 		Email: "lucifer.in.love@protonmail.com",
@@ -72,6 +72,12 @@ func main() {
 			Name:    "ssh-username",
 			Aliases: []string{"u"},
 			Usage:   "ssh username. If undefined, the current user will be used",
+			Value:   "",
+		},
+		&cli.StringFlag{
+			Name:    "ssh-options",
+			Aliases: []string{"s"},
+			Usage:   "ssh additional parameters. You can specify, e.g., ProxyCommand, etc. Please, don't use additional quotes here",
 			Value:   "",
 		},
 	}
@@ -183,6 +189,7 @@ func action(c *cli.Context) error {
 	resourceGroup := c.String("resource-group")
 	publicIP := c.Bool("public-ip")
 	username := c.String("ssh-username")
+	sshOptions := c.String("ssh-options")
 
 	// Get Azure Resource Group
 	if resourceGroup != "" {
@@ -260,7 +267,7 @@ func action(c *cli.Context) error {
 		connectTo = username + "@" + parsedSelectedVM["IP"]
 	}
 
-	cmd := exec.Command(sshPath, connectTo)
+	cmd := exec.Command(sshPath, connectTo, sshOptions)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
