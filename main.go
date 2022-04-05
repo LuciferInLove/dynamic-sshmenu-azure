@@ -173,7 +173,7 @@ func promptSelect(menuElements []string, elementKeys string, elementPrintPattern
 }
 
 func action(c *cli.Context) error {
-	session, err := newSessionFromFile()
+	session, err := newAzureSession()
 	if err != nil {
 		return err
 	}
@@ -188,18 +188,24 @@ func action(c *cli.Context) error {
 	if resourceGroup != "" {
 		resourceGroupToPassOn = resourceGroup
 	} else {
+		var selectedGroup string
+
 		resourceGroups, err := getResourceGroups(session, location)
 		if err != nil {
 			return err
 		}
 
-		resourceGroupKeys := "(. | parse).Number (. | parse).Name (. | parse).Location"
-		resourceGroupPrintPattern := "%v.\t%v (%v)"
+		if len(resourceGroups) == 1 {
+			selectedGroup = resourceGroups[0]
+		} else {
+			resourceGroupKeys := "(. | parse).Number (. | parse).Name (. | parse).Location"
+			resourceGroupPrintPattern := "%v.\t%v (%v)"
 
-		selectedGroup, err := promptSelect(resourceGroups, resourceGroupKeys, resourceGroupPrintPattern)
+			selectedGroup, err = promptSelect(resourceGroups, resourceGroupKeys, resourceGroupPrintPattern)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
 		}
 
 		parsedSelectedGroup, err := parseElement(selectedGroup)

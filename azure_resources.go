@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/compute/mgmt/compute"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-10-01/resources"
 	"golang.org/x/sync/errgroup"
 
@@ -53,21 +54,57 @@ func parseAuthFile(authFilePath string) (*map[string]interface{}, error) {
 	return &contents, err
 }
 
-func newSessionFromFile() (*azureSession, error) {
-	authorizer, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
+func newAzureSession() (*azureSession, error) {
+	var (
+		authorizer     autorest.Authorizer
+		subscriptionID string
+		err            error
+	)
 
-	if err != nil {
-		return nil, fmt.Errorf("Can't authenticate.\n%w", err)
-	}
+	authFileLocation := os.Getenv("AZURE_AUTH_LOCATION")
+	azureClientSecret := os.Getenv("AZURE_SECRET")
+	azureTenantID := os.Getenv("AZURE_TENANT")
 
-	authInfo, err := parseAuthFile(os.Getenv("AZURE_AUTH_LOCATION"))
+	// Get authentication from file
+	if authFileLocation != "" {
+		authorizer, err = auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
 
-	if err != nil {
-		return nil, fmt.Errorf("Can't get authentication info.\n%w", err)
+		if err != nil {
+			return nil, fmt.Errorf("Can't authenticate.\n%w", err)
+		}
+
+		authInfo, err := parseAuthFile(authFileLocation)
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't get authentication info.\n%w", err)
+		}
+
+		subscriptionID = (*authInfo)["subscriptionId"].(string)
+	} else {
+		// If there is no AZURE_AUTH_LOCATION, get authentication from
+		// environment variables
+		if azureClientSecret != "" {
+			os.Setenv("AZURE_CLIENT_SECRET", azureClientSecret)
+		}
+		if azureTenantID != "" {
+			os.Setenv("AZURE_TENANT_ID", azureTenantID)
+		}
+
+		authorizer, err = auth.NewAuthorizerFromEnvironment()
+		if err != nil {
+			return nil, fmt.Errorf("Can't authenticate.\n%w", err)
+		}
+
+		// Get Subscription ID
+		subscriptionsClient := subscriptions.NewClient()
+		subscriptionsClient.Authorizer = authorizer
+
+		subscriptions, _ := subscriptionsClient.ListComplete(context.Background())
+		subscriptionID = *subscriptions.Value().SubscriptionID
 	}
 
 	session := azureSession{
-		SubscriptionID: (*authInfo)["subscriptionId"].(string),
+		SubscriptionID: subscriptionID,
 		Authorizer:     authorizer,
 	}
 
