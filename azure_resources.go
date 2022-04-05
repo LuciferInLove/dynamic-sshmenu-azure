@@ -184,7 +184,7 @@ out:
 				}
 
 				if value, ok := vmTags[keyValue[0]]; ok {
-					if keyValue[1] != *value {
+					if !strings.Contains(*value, keyValue[1]) {
 						continue out
 					}
 				} else {
